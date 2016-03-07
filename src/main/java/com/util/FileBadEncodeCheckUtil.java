@@ -15,6 +15,7 @@ import com.common.bean.SimpleValueByRef;
 
 /**
  * 乱码检查
+ * modify by wangtlc 20160307
  * 
  * @Package: com.util 
  * @ClassName: FileBadEncodeCheckUtil
