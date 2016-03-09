@@ -59,7 +59,7 @@ public class App2 extends BaseApp {
 	public static void main(String[] args) throws Exception {
 
 		initDev();// DEV分支的拆工程前后分析处理
-		// initRM();// RM分支的拆工程前后分析处理
+//		 initRM();// RM分支的拆工程前后分析处理
 
 		App2 app2 = new App2(new FileCompareStrategyByFileContent(), dirStrOld, dirStrBase, dirStrCuse, dirStrPay);
 		app2.deal();
