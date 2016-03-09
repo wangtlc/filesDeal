@@ -42,7 +42,7 @@ public class App extends BaseApp {
 	private static String devDirStr = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
 	private static String rmDirStr = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt/src/main/";
 
-	// 待处理的文件列表
+	// 待处理的文件列表 
 	private List<File> devFileList = new ArrayList<File>();
 	private List<File> rmFileList = new ArrayList<File>();
 
