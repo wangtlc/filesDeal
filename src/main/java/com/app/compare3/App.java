@@ -1,16 +1,18 @@
 package com.app.compare3;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.app.compare.FileCompareStrategy;
 import com.app.compare.FileCompareStrategyByFileContent;
+import com.util.FileEncodeCheckUtil;
 
 import lombok.extern.log4j.Log4j;
 
@@ -46,7 +48,8 @@ public class App extends BaseApp {
 
 	// 分析结果
 	List<String> list1 = new ArrayList<String>();// dev1rm0
-	List<String> list2 = new ArrayList<String>();// devrm_no
+	Set<String> set2 = new HashSet<String>();// devrm_no
+	List<String> set3 = new ArrayList<String>();// ecode
 	List<String> list3 = new ArrayList<String>();// dev0rm1
 
 	// 处理结果：白名单，即保留处理
@@ -67,48 +70,67 @@ public class App extends BaseApp {
 		iniFileListInDirs(rmFileList, rmDirStr);
 		log.info("devFileList数为：" + devFileList.size() + ", rmFileList数为：" + rmFileList.size());
 
-		dealDevFileList();// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
-		dealRmFileList();// 解决场景：RM有，DEV无
+		dealExistFileList(devFileList,devDirStr, rmDirStr, list1);
+		dealExistFileList(rmFileList, rmDirStr, devDirStr, list3);
+
+		dealEqualsFileList(devFileList, devDirStr, rmDirStr, set2,set3);
+		dealEqualsFileList(rmFileList, rmDirStr, devDirStr, set2,set3);
+
+		// dealDevFileList();// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
+		// dealRmFileList();// 解决场景：RM有，DEV无
 
 		log.info("处理完毕，结果如下：");
 		printResult("rm-notexsit,", list1, list1Blank);
-		printResult("dev_rm_notequal,", list2, list2Blank);
+		printResult("dev_rm_notequal,", set2, list2Blank);
 		printResult("dev-notexsit,", list3, list3Blank);
+		printResult("encode,", set3, null);
 	}
 
-	private void dealDevFileList() throws Exception {
-		for (File devFile : devFileList) {
-			if (devFile.isDirectory()) {
+	/**
+	 * 原文件：遍历sourceFileList里面所有文件 目标文件：将原前缀sourcePre替换为targetPre 查看两个文件差异。
+	 */
+	private void dealEqualsFileList(List<File> sourceFileList, String sourcePre, String targetPre, Collection<String> result, Collection<String> result4code) throws Exception {
+		for (File sourceFile : sourceFileList) {
+			if (sourceFile.isDirectory()) {
 				continue;
 			}
-			File rmFile = new File(rmDirStr + pathDeal(devFile.getAbsolutePath()).replace(devDirStr, ""));
-			if (!rmFile.exists()) {
-				list1.add("" + devFile);
-			} else if (!fileCompareStrategy.isEqualsTwoFile(rmFile, devFile)) {// 如果在本地存在且相等则不处理，否则拷贝
-				list2.add("" + devFile);
+			File targetFile = new File(targetPre + pathDeal(sourceFile.getAbsolutePath()).replace(sourcePre, ""));
+			if (sourceFile.exists() && targetFile.exists()) {
+				//分析文件是否一致
+				if (!fileCompareStrategy.isEqualsTwoFile(sourceFile, targetFile)) {
+					if (!result.contains("" + sourceFile)) {
+						result.add(removePre("" + sourceFile));
+					}
+				}
+				//分析编码问题
+				if (!FileEncodeCheckUtil.get_charset(sourceFile).equals(FileEncodeCheckUtil.get_charset(targetFile))) {
+					result4code.add(removePre("" + sourceFile));
+				}
 			}
 		}
 	}
 
-	private void dealRmFileList() throws Exception {
-		for (File rmFile : rmFileList) {
-			if (rmFile.isDirectory()) {
+	/**
+	 * 原文件：遍历sourceFileList里面所有文件 目标文件：将原前缀sourcePre替换为targetPre 查看目标文件是否存在。
+	 */
+	private void dealExistFileList(List<File> sourceFileList, String sourcePre, String targetPre, List<String> result) throws Exception {
+		for (File sourceFile : sourceFileList) {
+			if (sourceFile.isDirectory()) {
 				continue;
 			}
-			File rmFileTmp = new File(devDirStr + pathDeal(rmFile.getAbsolutePath()).replace(rmDirStr, ""));
-			if (!rmFileTmp.exists()) {
-				list3.add("" + rmFileTmp);
+			File targetFile = new File(targetPre + pathDeal(sourceFile.getAbsolutePath()).replace(sourcePre, ""));
+			if (!targetFile.exists()) {
+				result.add(removePre("" + sourceFile));
 			}
 		}
 	}
 
-	private void printResult(String preTmp, List<String> list, List<String> listBlank) {
-		for (String tmp : list) {
-			String pre = pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, "");
-			if (listBlank.contains(pre)) {
+	private void printResult(String preTmp, Collection<String> target, List<String> listBlank) {
+		for (String tmp : target) {
+			if (listBlank!=null && listBlank.contains(tmp)) {
 				continue;
 			}
-			log.info(preTmp + pre);
+			log.info(preTmp + tmp);
 		}
 	}
 
@@ -139,4 +161,7 @@ public class App extends BaseApp {
 		}
 	}
 
+	private String removePre(String tmp) {
+		return pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, "");//将所有前缀去除;
+	}
 }

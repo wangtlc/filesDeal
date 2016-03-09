@@ -16,9 +16,6 @@ public class FileCompareStrategyByFileContent implements FileCompareStrategy {
 
 	@Override
 	public boolean isEqualsTwoFile(File file1, File file2) throws Exception {
-		if (!FileEncodeCheckUtil.get_charset(file1).equals(FileEncodeCheckUtil.get_charset(file2))) {
-			log.info("文件编码不一致：比较,源文件:" + file1 +"-->>生产SVN："+FileEncodeCheckUtil.get_charset(file1)+ "目标文件:" + "-->>开发SVN："+FileEncodeCheckUtil.get_charset(file2));
-		}
 		List<String> fileContentsFile1 = FileUtils.readLines(file1,FileEncodeCheckUtil.get_charset(file1));
 		List<String> fileContentsFile2 = FileUtils.readLines(file2,FileEncodeCheckUtil.get_charset(file2));
 		if (fileContentsFile1.size() != fileContentsFile2.size()) {
