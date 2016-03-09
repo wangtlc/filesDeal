@@ -36,29 +36,31 @@ import lombok.extern.log4j.Log4j;
  */
 @Log4j
 public class App extends BaseApp {
-	FileCompareStrategy fileCompareStrategy = new FileCompareStrategyByFileContent();
-	String devDirStr = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
-	String rmDirStr = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt/src/main/";
-	File devDir = new File(devDirStr);
-	File rmDir = new File(rmDirStr);
+
+	public App(FileCompareStrategy fileCompareStrategy, String... dirs) {
+		super(fileCompareStrategy, dirs);
+	}
+
+	private static String devDirStr = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
+	private static String rmDirStr = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt/src/main/";
 
 	// 待处理的文件列表
-	List<File> devFileList = new ArrayList<File>();
-	List<File> rmFileList = new ArrayList<File>();
+	private List<File> devFileList = new ArrayList<File>();
+	private List<File> rmFileList = new ArrayList<File>();
 
 	// 分析结果
-	List<String> list1 = new ArrayList<String>();// dev1rm0
-	Set<String> set2 = new HashSet<String>();// devrm_no
-	List<String> set3 = new ArrayList<String>();// ecode
-	List<String> list3 = new ArrayList<String>();// dev0rm1
+	private List<String> list1 = new ArrayList<String>();// dev1rm0
+	private Set<String> set2 = new HashSet<String>();// devrm_no
+	private Set<String> set4Code = new HashSet<String>();// ecode
+	private List<String> list3 = new ArrayList<String>();// dev0rm1
 
 	// 处理结果：白名单，即保留处理
-	List<String> list1Blank = new ArrayList<String>();// dev1rm0
-	List<String> list2Blank = new ArrayList<String>();// devrm_no
-	List<String> list3Blank = new ArrayList<String>();// dev0rm1
+	private List<String> list1Blank = new ArrayList<String>();// dev1rm0
+	private List<String> list2Blank = new ArrayList<String>();// devrm_no
+	private List<String> list3Blank = new ArrayList<String>();// dev0rm1
 
 	public static void main(String[] args) throws Exception {
-		App app = new App();
+		App app = new App(new FileCompareStrategyByFileContent(), devDirStr, rmDirStr);
 		app.deal();
 	}
 
@@ -70,68 +72,17 @@ public class App extends BaseApp {
 		iniFileListInDirs(rmFileList, rmDirStr);
 		log.info("devFileList数为：" + devFileList.size() + ", rmFileList数为：" + rmFileList.size());
 
-		dealExistFileList(devFileList,devDirStr, rmDirStr, list1);
-		dealExistFileList(rmFileList, rmDirStr, devDirStr, list3);
+		dealExistFileList(devFileList, new String[] { devDirStr }, new String[] { rmDirStr }, list1);
+		dealExistFileList(rmFileList, new String[] { rmDirStr }, new String[] { devDirStr }, list3);
 
-		dealEqualsFileList(devFileList, devDirStr, rmDirStr, set2,set3);
-		dealEqualsFileList(rmFileList, rmDirStr, devDirStr, set2,set3);
-
-		// dealDevFileList();// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
-		// dealRmFileList();// 解决场景：RM有，DEV无
+		dealEqualsFileList(devFileList, new String[] { devDirStr }, new String[] { rmDirStr }, set2, set4Code);
+		dealEqualsFileList(rmFileList, new String[] { rmDirStr }, new String[] { devDirStr }, set2, set4Code);
 
 		log.info("处理完毕，结果如下：");
 		printResult("rm-notexsit,", list1, list1Blank);
 		printResult("dev_rm_notequal,", set2, list2Blank);
 		printResult("dev-notexsit,", list3, list3Blank);
-		printResult("encode,", set3, null);
-	}
-
-	/**
-	 * 原文件：遍历sourceFileList里面所有文件 目标文件：将原前缀sourcePre替换为targetPre 查看两个文件差异。
-	 */
-	private void dealEqualsFileList(List<File> sourceFileList, String sourcePre, String targetPre, Collection<String> result, Collection<String> result4code) throws Exception {
-		for (File sourceFile : sourceFileList) {
-			if (sourceFile.isDirectory()) {
-				continue;
-			}
-			File targetFile = new File(targetPre + pathDeal(sourceFile.getAbsolutePath()).replace(sourcePre, ""));
-			if (sourceFile.exists() && targetFile.exists()) {
-				//分析文件是否一致
-				if (!fileCompareStrategy.isEqualsTwoFile(sourceFile, targetFile)) {
-					if (!result.contains("" + sourceFile)) {
-						result.add(removePre("" + sourceFile));
-					}
-				}
-				//分析编码问题
-				if (!FileEncodeCheckUtil.get_charset(sourceFile).equals(FileEncodeCheckUtil.get_charset(targetFile))) {
-					result4code.add(removePre("" + sourceFile));
-				}
-			}
-		}
-	}
-
-	/**
-	 * 原文件：遍历sourceFileList里面所有文件 目标文件：将原前缀sourcePre替换为targetPre 查看目标文件是否存在。
-	 */
-	private void dealExistFileList(List<File> sourceFileList, String sourcePre, String targetPre, List<String> result) throws Exception {
-		for (File sourceFile : sourceFileList) {
-			if (sourceFile.isDirectory()) {
-				continue;
-			}
-			File targetFile = new File(targetPre + pathDeal(sourceFile.getAbsolutePath()).replace(sourcePre, ""));
-			if (!targetFile.exists()) {
-				result.add(removePre("" + sourceFile));
-			}
-		}
-	}
-
-	private void printResult(String preTmp, Collection<String> target, List<String> listBlank) {
-		for (String tmp : target) {
-			if (listBlank!=null && listBlank.contains(tmp)) {
-				continue;
-			}
-			log.info(preTmp + tmp);
-		}
+		printResult("encode,", set4Code, null);
 	}
 
 	// 初始化白名单
@@ -159,9 +110,5 @@ public class App extends BaseApp {
 				}
 			}
 		}
-	}
-
-	private String removePre(String tmp) {
-		return pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, "");//将所有前缀去除;
 	}
 }

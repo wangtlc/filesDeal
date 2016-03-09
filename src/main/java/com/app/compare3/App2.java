@@ -2,7 +2,9 @@ package com.app.compare3;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.app.compare.FileCompareStrategy;
 import com.app.compare.FileCompareStrategyByFileContent;
@@ -27,72 +29,50 @@ import lombok.extern.log4j.Log4j;
  *
  */
 @Log4j
-public class App2 extends BaseApp{
-	FileCompareStrategy fileCompareStrategy = new FileCompareStrategyByFileContent();
-	String devDirStrOld = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
-	String devDirStrBase = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/base-module/src/main/";
-	String devDirStrCuse = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/cust-module/src/main/";
-	String devDirStrPay = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/pay-module/src/main/";
-	
-	
-	List<File> devFileListOld=new ArrayList<File>() ;
-	List<File> devFileListNew =new ArrayList<File>() ;
+public class App2 extends BaseApp {
+	public App2(FileCompareStrategy fileCompareStrategy, String... dirs) {
+		super(fileCompareStrategy, dirs);
+	}
 
-	List<String> list1 = new ArrayList<String>();// dev1rm0
-	List<String> list2 = new ArrayList<String>();// devrm_no
-	List<String> list3 = new ArrayList<String>();// dev0rm1
+	private static String devDirStrOld = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
+	private static String devDirStrBase = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/base-module/src/main/";
+	private static String devDirStrCuse = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/cust-module/src/main/";
+	private static String devDirStrPay = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/pay-module/src/main/";
+
+	private List<File> devFileListOld = new ArrayList<File>();
+	private List<File> devFileListNew = new ArrayList<File>();
+
+	// 分析结果
+	private List<String> list1 = new ArrayList<String>();// dev1rm0
+	private Set<String> set2 = new HashSet<String>();// devrm_no
+	private Set<String> set4Code = new HashSet<String>();// ecode
+	private List<String> list3 = new ArrayList<String>();// devold 0  devnew 1
 
 	public static void main(String[] args) throws Exception {
-		App2 app=new App2();
-		log.info("开始初始化");
-		app.deal();
-	}
-	
-	private  void deal() throws Exception {
-		iniFileListInDirs(devFileListOld,devDirStrOld);
-		iniFileListInDirs(devFileListNew,devDirStrBase,devDirStrCuse,devDirStrPay);
-		log.info("devFileListOld数为："+devFileListOld.size()+", devFileListNew数为："+ devFileListNew.size());
-		for (File file : devFileListNew) {
-			
-		}
-		
-//		workInDir2(rmDir);// 解决场景：RM有，DEV无
-//		log.info("处理完毕，结果如下：");
-//		for (String tmp : list1) {
-//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
-//		}
-//		for (String tmp : list2) {
-//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
-//		}
-//		for (String tmp : list3) {
-//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
-//		}
+		App2 app2 = new App2(new FileCompareStrategyByFileContent(), devDirStrOld, devDirStrBase, devDirStrCuse, devDirStrPay);
+		app2.deal();
 	}
 
+	private void deal() throws Exception {
+		log.info("初始化完成,开始处理");
+		iniFileListInDirs(devFileListOld, devDirStrOld);
+		iniFileListInDirs(devFileListNew, devDirStrBase, devDirStrCuse, devDirStrPay);
+		log.info("devFileListOld数为：" + devFileListOld.size() + ", devFileListNew数为：" + devFileListNew.size());
 
-//	private void workInDir1(File devFileP) throws Exception {
-//		if (devFileP.getAbsolutePath().contains("webapp")) {
-//			log.warn("【跳过该文件：】" + devFileP.getName());
-//			return;
-//		}
-//		File[] devFiles = devFileP.listFiles();
-//		for (File devFile : devFiles) {
-//			if (devFile.isDirectory()) {
-//				workInDir1(devFile);
-//			} else {
-//				File rmFile = new File(rmDirStr + pathDeal(devFile.getAbsolutePath()).replace(devDirStr, ""));
-//				if (!rmFile.exists()) {
-//					list1.add("rm-notexsit," + devFile);
-//				} else if (fileCompareStrategy.isEqualsTwoFile(rmFile, devFile)) {// 如果在本地存在且相等则不处理，否则拷贝
-//				} else {
-//					list2.add("dev_rm_notequal," + devFile);
-//				}
-//			}
-//		}
-//	}
+		dealExistFileList(devFileListOld, new String[]{devDirStrOld}, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, list1);
+		dealExistFileList(devFileListNew, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, new String[]{devDirStrOld}, list3);
 
-	private String pathDeal(String absolutePath) {
-		return absolutePath.replace("\\", "/");
+		dealEqualsFileList(devFileListOld, new String[]{devDirStrOld}, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, set2, set4Code);
+		dealEqualsFileList(devFileListNew, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, new String[]{devDirStrOld}, set2, set4Code);
+
+		// dealDevFileList();// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
+		// dealRmFileList();// 解决场景：RM有，DEV无
+
+		log.info("处理完毕，结果如下：");
+		printResult("new-notexsit,", list1, null);
+		printResult("old_new_notequal,", set2, null);
+		printResult("old-notexsit,", list3, null);
+		printResult("encode,", set4Code, null);
 	}
 
 }
