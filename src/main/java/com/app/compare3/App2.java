@@ -27,73 +27,71 @@ import lombok.extern.log4j.Log4j;
  *
  */
 @Log4j
-public class App2 {
-	static FileCompareStrategy fileCompareStrategy = new FileCompareStrategyByFileContent();
-	static String devDirStr = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
-	static String rmDirStr = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt/src/main/";
-	static File devDir = new File(devDirStr);
-	static File rmDir = new File(rmDirStr);
+public class App2 extends BaseApp{
+	FileCompareStrategy fileCompareStrategy = new FileCompareStrategyByFileContent();
+	String devDirStrOld = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
+	String devDirStrBase = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/base-module/src/main/";
+	String devDirStrCuse = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/cust-module/src/main/";
+	String devDirStrPay = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/pay-module/src/main/";
+	
+	
+	List<File> devFileListOld=new ArrayList<File>() ;
+	List<File> devFileListNew =new ArrayList<File>() ;
 
-	static List<String> list1 = new ArrayList<String>();// dev1rm0
-	static List<String> list2 = new ArrayList<String>();// devrm_no
-	static List<String> list3 = new ArrayList<String>();// dev0rm1
+	List<String> list1 = new ArrayList<String>();// dev1rm0
+	List<String> list2 = new ArrayList<String>();// devrm_no
+	List<String> list3 = new ArrayList<String>();// dev0rm1
 
 	public static void main(String[] args) throws Exception {
-		log.info("开始处理");
-		workInDir1(devDir);// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
-		workInDir2(rmDir);// 解决场景：RM有，DEV无
-		log.info("处理完毕，结果如下：");
-		for (String tmp : list1) {
-			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
+		App2 app=new App2();
+		log.info("开始初始化");
+		app.deal();
+	}
+	
+	private  void deal() throws Exception {
+		iniFileListInDirs(devFileListOld,devDirStrOld);
+		iniFileListInDirs(devFileListNew,devDirStrBase,devDirStrCuse,devDirStrPay);
+		log.info("devFileListOld数为："+devFileListOld.size()+", devFileListNew数为："+ devFileListNew.size());
+		for (File file : devFileListNew) {
+			
 		}
-		for (String tmp : list2) {
-			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
-		}
-		for (String tmp : list3) {
-			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
-		}
+		
+//		workInDir2(rmDir);// 解决场景：RM有，DEV无
+//		log.info("处理完毕，结果如下：");
+//		for (String tmp : list1) {
+//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
+//		}
+//		for (String tmp : list2) {
+//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
+//		}
+//		for (String tmp : list3) {
+//			log.info(pathDeal(tmp).replaceAll(devDirStr, "").replaceAll(rmDirStr, ""));	
+//		}
 	}
 
-	public static void workInDir2(File rmFileP) throws Exception {
-		if (rmFileP.getAbsolutePath().contains("webapp")) {
-			log.warn("【跳过该文件：】" + rmFileP.getName());
-			return;
-		}
-		File[] rmFiles = rmFileP.listFiles();
-		for (File rmFileTem : rmFiles) {
-			if (rmFileTem.isDirectory()) {
-				workInDir2(rmFileTem);
-			} else {
-				File rmFile = new File(devDirStr + pathDeal(rmFileTem.getAbsolutePath()).replace(rmDirStr, ""));
-				if (!rmFile.exists()) {
-					list3.add("dev-notexsit," + rmFileTem);
-				}
-			}
-		}
-	}
 
-	public static void workInDir1(File devFileP) throws Exception {
-		if (devFileP.getAbsolutePath().contains("webapp")) {
-			log.warn("【跳过该文件：】" + devFileP.getName());
-			return;
-		}
-		File[] devFiles = devFileP.listFiles();
-		for (File devFile : devFiles) {
-			if (devFile.isDirectory()) {
-				workInDir1(devFile);
-			} else {
-				File rmFile = new File(rmDirStr + pathDeal(devFile.getAbsolutePath()).replace(devDirStr, ""));
-				if (!rmFile.exists()) {
-					list1.add("rm-notexsit," + devFile);
-				} else if (fileCompareStrategy.isEqualsTwoFile(rmFile, devFile)) {// 如果在本地存在且相等则不处理，否则拷贝
-				} else {
-					list2.add("dev_rm_notequal," + devFile);
-				}
-			}
-		}
-	}
+//	private void workInDir1(File devFileP) throws Exception {
+//		if (devFileP.getAbsolutePath().contains("webapp")) {
+//			log.warn("【跳过该文件：】" + devFileP.getName());
+//			return;
+//		}
+//		File[] devFiles = devFileP.listFiles();
+//		for (File devFile : devFiles) {
+//			if (devFile.isDirectory()) {
+//				workInDir1(devFile);
+//			} else {
+//				File rmFile = new File(rmDirStr + pathDeal(devFile.getAbsolutePath()).replace(devDirStr, ""));
+//				if (!rmFile.exists()) {
+//					list1.add("rm-notexsit," + devFile);
+//				} else if (fileCompareStrategy.isEqualsTwoFile(rmFile, devFile)) {// 如果在本地存在且相等则不处理，否则拷贝
+//				} else {
+//					list2.add("dev_rm_notequal," + devFile);
+//				}
+//			}
+//		}
+//	}
 
-	private static String pathDeal(String absolutePath) {
+	private String pathDeal(String absolutePath) {
 		return absolutePath.replace("\\", "/");
 	}
 
