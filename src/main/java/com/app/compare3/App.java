@@ -2,7 +2,6 @@ package com.app.compare3;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.app.compare.FileCompareStrategy;
 import com.app.compare.FileCompareStrategyByFileContent;
-import com.util.FileEncodeCheckUtil;
 
 import lombok.extern.log4j.Log4j;
 
@@ -83,6 +81,7 @@ public class App extends BaseApp {
 		printResult("dev_rm_notequal,", set2, list2Blank);
 		printResult("dev-notexsit,", list3, list3Blank);
 		printResult("encode,", set4Code, null);
+		log.info("输出完毕！");
 	}
 
 	// 初始化白名单

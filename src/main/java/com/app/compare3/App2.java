@@ -34,13 +34,13 @@ public class App2 extends BaseApp {
 		super(fileCompareStrategy, dirs);
 	}
 
-	private static String devDirStrOld = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
-	private static String devDirStrBase = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/base-module/src/main/";
-	private static String devDirStrCuse = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/cust-module/src/main/";
-	private static String devDirStrPay = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/pay-module/src/main/";
+	private static String dirStrOld = "";
+	private static String dirStrBase = "";
+	private static String dirStrCuse = "";
+	private static String dirStrPay = "";
 
-	private List<File> devFileListOld = new ArrayList<File>();
-	private List<File> devFileListNew = new ArrayList<File>();
+	private List<File> fileListOld = new ArrayList<File>();
+	private List<File> fileListNew = new ArrayList<File>();
 
 	// 分析结果
 	private List<String> list1 = new ArrayList<String>();// dev1rm0
@@ -49,30 +49,40 @@ public class App2 extends BaseApp {
 	private List<String> list3 = new ArrayList<String>();// devold 0  devnew 1
 
 	public static void main(String[] args) throws Exception {
-		App2 app2 = new App2(new FileCompareStrategyByFileContent(), devDirStrOld, devDirStrBase, devDirStrCuse, devDirStrPay);
+		
+		//DEV分支的拆工程前后分析处理
+//		dirStrOld = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt/src/main/";
+//		dirStrBase = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/base-module/src/main/";
+//		dirStrCuse = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/cust-module/src/main/";
+//		dirStrPay = "E:/workspace-stq-all/chinamobile-jt/chinamobile-jt-dev/web-jt-parent/pay-module/src/main/";
+		//RM分支的拆工程前后分析处理
+		dirStrOld = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt/src/main/";
+		dirStrBase = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt-parent/base-module/src/main/";
+		dirStrCuse = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt-parent/cust-module/src/main/";
+		dirStrPay = "E:/workspace-stq-all/chinamobile-jt/echd-chinamobile-jt-prod/web-jt-parent/pay-module/src/main/";
+		
+		App2 app2 = new App2(new FileCompareStrategyByFileContent(), dirStrOld, dirStrBase, dirStrCuse, dirStrPay);
 		app2.deal();
 	}
 
 	private void deal() throws Exception {
 		log.info("初始化完成,开始处理");
-		iniFileListInDirs(devFileListOld, devDirStrOld);
-		iniFileListInDirs(devFileListNew, devDirStrBase, devDirStrCuse, devDirStrPay);
-		log.info("devFileListOld数为：" + devFileListOld.size() + ", devFileListNew数为：" + devFileListNew.size());
+		iniFileListInDirs(fileListOld, dirStrOld);
+		iniFileListInDirs(fileListNew, dirStrBase, dirStrCuse, dirStrPay);
+		log.info("devFileListOld数为：" + fileListOld.size() + ", devFileListNew数为：" + fileListNew.size());
 
-		dealExistFileList(devFileListOld, new String[]{devDirStrOld}, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, list1);
-		dealExistFileList(devFileListNew, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, new String[]{devDirStrOld}, list3);
+		dealExistFileList(fileListOld, new String[]{dirStrOld}, new String[]{dirStrBase,dirStrCuse,dirStrPay}, list1);
+		dealExistFileList(fileListNew, new String[]{dirStrBase,dirStrCuse,dirStrPay}, new String[]{dirStrOld}, list3);
 
-		dealEqualsFileList(devFileListOld, new String[]{devDirStrOld}, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, set2, set4Code);
-		dealEqualsFileList(devFileListNew, new String[]{devDirStrBase,devDirStrCuse,devDirStrPay}, new String[]{devDirStrOld}, set2, set4Code);
-
-		// dealDevFileList();// 解决场景：1、DEV有/RM无，2、DEV和RM不一致
-		// dealRmFileList();// 解决场景：RM有，DEV无
+		dealEqualsFileList(fileListOld, new String[]{dirStrOld}, new String[]{dirStrBase,dirStrCuse,dirStrPay}, set2, set4Code);
+		dealEqualsFileList(fileListNew, new String[]{dirStrBase,dirStrCuse,dirStrPay}, new String[]{dirStrOld}, set2, set4Code);
 
 		log.info("处理完毕，结果如下：");
 		printResult("new-notexsit,", list1, null);
 		printResult("old_new_notequal,", set2, null);
 		printResult("old-notexsit,", list3, null);
 		printResult("encode,", set4Code, null);
+		log.info("输出完毕！");
 	}
 
 }
